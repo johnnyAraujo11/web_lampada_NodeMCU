@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../styles/style.css">
+    <script src="../scripts/jquery-3.6.0.min.js" type="text/javascript"></script>
+    <title>Lâmpada </title>
+</head>
+
+<body onload="initalState()">
+    <div id='panel' class='panel'>
+        <h1>Node MCU: </h1>
+        <p id='stateESP'> <%= text %> </p>
+        <h2>Estado da lâmpada</h2>
+        <p id='stateLamp'><%= text2 %> </p>
+        <div id='extern'>
+            <div id='lamp'></div>
+            <div id='lamp1'></div>
+            <div id='lamp2'></div>
+        </div>
+        <div class='buttons'>
+            <form action="/on" method="POST">
+                <button id="on">Ligar</button>
+            </form>
+            <form action="/off" method="POST">
+                <button id='off'>Desligar</button>
+            </form>
+        </div>
+        <div>
+            <form action="/timer" method="POST">
+                <h1 id='titleTimer'>Temporizador</h1>
+                <div id='SelectTimer'>
+                    <div>
+                        <input type="radio" name="timerSelect" id="setON" value="ligar" checked>
+                        <label for="setON">Ligar</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="timerSelect" id="setOFF" value="desligar">
+                        <label for="setOFF">Desligar</label>
+                    </div>
+                </div>
+
+                <div id='timer'>
+                    <input type="time" name="timer" id="timer" value="00:00" required>
+                    <p id='timerResult'> <%=  texto3 %> </p>
+                    <button id='initTimer' type="submit">Iniciar</button>
+                </div>
+            </form>
+        </div>
+        <div id='new-program'><a id='bnt-new-program' href="#" onclick="Schedule.open()">Nova programação</a></div>
+        <div id='button-expense'>
+            <a href="#panel-expense">Consumo mensal</a>
+        </div>
+    </div>
+    <div class="panel">
+        <div id='valuesTable'>
+            <table>
+                <caption>
+                    <h2>Programação</h2>
+                </caption>
+                <thead>
+                    <th>Id</th>
+                    <th>Semana</th>
+                    <th>Horário</th>
+                    <th>Comando</th>
+                </thead>
+                <tbody>
+                    <% for( let index = 0; index < showData.length; index++ ) { %>
+                    <tr>
+                        <td> <span> <%= index %> </span> </td>
+                        <td> <%= showData[index].week%> </td>
+                        <td> <%= showData[index].hour%></td>
+                        <td> <%= showData[index].action%></td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+
+        </div>
+        <div>
+            <form action="/delete" method="POST">
+                <div id='delete'>
+                    <p>Id</p>
+                    <input id="deleteInput" min="0" name="positionDelete" type="number" value="0">
+                    <button type="submit">Remover</button>
+                </div>
+
+            </form>
+        </div>
+        <a id='buttonInicio' href="#panel">Início</a>
+    </div>
+    <div class='panel' id='panel-expense'>
+        <caption>
+            <h1>Consumo mensal</h1>
+        </caption>
+        <table id="consumo" border="1" style="width:50%">
+            <tr>
+                <th>Mês</th>
+                <th>Wh</th>
+                <th>Valor(R$)</th>
+            </tr>
+            <tr>
+                <td>JANEIRO</td>
+                <td id='mes0'><%= hr0 %></td>
+                <td id='mes0value'><%= vl0 %></td>
+            </tr>
+            <tr>
+                <td>FEVEREIRO</td>
+                <td id='mes1'><%= hr1 %></td>
+                <td id='mes1value'><%= vl1 %></td>
+            </tr>
+            <tr>
+                <td>MARÇO</td>
+                <td id='mes2'><%= hr2 %></td>
+                <td id='mes2value'><%= vl2 %></td>
+            </tr>
+            <tr>
+                <td>ABRIL</td>
+                <td id='mes3'><%= hr3 %></td>
+                <td id='mes3value'><%= vl3 %></td>
+            </tr>
+            <tr>
+                <td>MAIO</td>
+                <td id='mes4'><%= hr4 %></td>
+                <td id='mes4value'><%= vl4 %></td>
+            </tr>
+            <tr>
+                <td>JUNHO</td>
+                <td id='mes5'><%= hr5 %></td>
+                <td id='mes5value'><%= vl5 %></td>
+            </tr>
+            <tr>
+                <td>JULHO</td>
+                <td id='mes6'><%= hr6 %></td>
+                <td id='mes6value'><%= vl6 %></td>
+            </tr>
+            <tr>
+                <td>AGOSTO</td>
+                <td id='mes7'><%= hr7 %></td>
+                <td id='mes7value'><%= vl7 %></td>
+            </tr>
+            <tr>
+                <td>SETEMBRO</td>
+                <td id='mes8'><%= hr8 %></td>
+                <td id='mes8value'><%= vl8 %></td>
+            </tr>
+            <tr>
+                <td>OUTUBRO</td>
+                <td id='mes9'><%= hr9 %></td>
+                <td id='mes9value'><%= vl9 %></td>
+            </tr>
+            <tr>
+                <td>NOVEMBRO</td>
+                <td id='mes10'><%= hr10 %></td>
+                <td id='mes10value'><%= vl10 %></td>
+            </tr>
+            <tr>
+                <td>DEZEMBRO</td>
+                <td id='mes11'><%= hr11 %></td>
+                <td id='mes11value'><%= vl11 %></td>
+            </tr>
+        </table><br><br>
+        <a href="#panel">Início</a>
+    </div>
+
+    <section>
+        <div class='schedule-week'>
+            <div class="schedule">
+                <form action="/" method="POST">
+                    <div>
+                        <input type="radio" name="week" id="Domingo" value="0" checked>
+                        <label for="domingo">Domingo</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="week" id="segunda" value="1">
+                        <label for="segunda">Segunda</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="week" id="terca" value=2>
+                        <label for="terca">Terça</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="week" id="quarta" value="3">
+                        <label for="quarta">Quarta</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="week" id="quinta" value="4">
+                        <label for="quinta">Quinta</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="week" id="sexta" value="5">
+                        <label for="sexta">Sexta</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="week" id="sabado" value="6">
+                        <label for="sabado">Sábado</label>
+                    </div>
+
+                    <div id='setHour'>
+                        <h1>Horário:&nbsp; &nbsp;</h1>
+                        <input type="time" value="12:00" name="hour" id="hour" required>
+                    </div>
+                    <div id='action'>
+                        <input type="radio" name="selectState" id="selectStateOn" value="1" checked>
+                        <label for="selectState">Ligar</label>
+
+                        <input type="radio" name="selectState" id="selectStateOff" value="0">
+                        <label for="selectState">Desligar</label>
+                    </div>
+                    <div id='schedule-buttons'>
+                        <a id='cancel' href="#" onclick="Schedule.close()">Cancelar</a>
+                        <button type="submit" id='save'>Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <script src="../scripts/script.js"></script> 
+</body>
+</html>
