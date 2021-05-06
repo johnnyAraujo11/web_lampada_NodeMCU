@@ -135,7 +135,7 @@ app.post('/off', (req, res) => {
 
 //Deleta um programação no arquivo json (state_Program)
 app.post('/delete', (req, res) => {
-  operationJSON.delete('state_Program',parseInt(req.body.positionDelete))
+  operationJSON.delete('store_Program',parseInt('store_Program',req.body.positionDelete))
   copyJSONProgram() // Rescrever no arquivo os valores alterando-os para mostrar na tela
   return res.redirect('/');
 })
@@ -155,11 +155,14 @@ function runProgram() {
   let date = convertUTC();
   let temp = operationJSON.read('store_Program');
   let stateBefore = operationJSON.read('state'); //Obter do arquivo estado atua da lâmpada
+  
+  
   if (temp[0] == null) {} else {
     for (i in temp) {
       let array = temp[i].hour.split(':'); //Retirar os ':' da hora e retorna um array com as palavra separadas em cada posição(exemplo: ['22','50'])
       if (date.getDay().toString() === temp[i].week) {
         if (date.getHours() == parseInt(array[0]) && date.getMinutes() == parseInt(array[1])) {
+          saveStateBefore = stateBefore.state
           time = 60000 //Caso entre nesse escopo muda o tempo que a função irá executar na execução seguinte
 
           temp[i].action === '1' ? publish.onLamp() : publish.offLamp()
@@ -170,13 +173,13 @@ function runProgram() {
             if (temp[i].action === '1' && stateBefore.state === 'd' && stateNow.state === 'd') {
               readWait.push(temp[i])
               operationJSON.write('wait', readWait)
-              saveStateBefore = stateNow.state;
+              console.log("estippo")
+              
 
             } else if (temp[i].action === '0' && stateBefore.state === 'l' && stateNow.state === 'l') {
               readWait.push(temp[i])
               operationJSON.write('wait', readWait)
-              saveStateBefore = stateNow.state; //Salvar o estado do arquivo na variável para poder ser verficada sua mudança
-
+              console.log("cabruncro")
             }
           }, 1000);
         } else time = 1000;
@@ -190,13 +193,16 @@ function runProgram() {
  * o dado do arquivo 'state.json' mude, pois a programação não ocorreu. Quando o node mcu conectar à internet é publicado a ação que 
  * deveria ter acontecido. O objetivo principal é a instabilidade da internet.
  * */
+
+
 let readJson
 function wait() {
   readJson = operationJSON.read('wait')
-
+  console.log("ddddddddd: " + saveStateBefore)
   let stateLamp = operationJSON.read('state');
   console.log(readJson)
   console.log(stateLamp)
+  console.log(saveStateBefore)
 
   if (readJson[0] === undefined) {
     console.log("vazio")
@@ -337,7 +343,9 @@ app.get('/', (req, res) => {
   let data = operationJSON.read('state'); // Ler o arquivo JSON com o estado da lâmpada
   let hour = operationJSON.read('horas'); //Ler o arquivo e retorna no formato JSON
   let dataCopy = operationJSON.read('copy_Program');
+  let aa = operationJSON.read('wait')
   res.render("../views/index", {
+    teste: aa,
     showData: dataCopy,
     text: stateNode,
     text2: data.state,
