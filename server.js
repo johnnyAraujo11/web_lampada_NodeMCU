@@ -1,8 +1,14 @@
 var awsIot = require('aws-iot-device-sdk');
 const express = require('express'); // Bilioteca para criar um servidor
-const app = express(); 
+const app = express();
 const bodyParser = require('body-parser'); // Usado para obter os dados da hora e dia da semana no HTML
 const fs = require('fs'); // Biblioteca para fazer operações de leitura e escrita
+const {
+  stringify
+} = require('querystring');
+const {
+  Console
+} = require('console');
 
 
 // Template enginer como é chamado.
@@ -37,10 +43,10 @@ const operationJSON = {
   read(json) {
     return JSON.parse(fs.readFileSync(`./data/${json}.json`, 'utf-8'))
   },
-  delete(positon) {
-    let data = this.read('store_Program');
+  delete(file,positon) {
+    let data = this.read(`${file}`);
     data.splice(positon, 1);
-    this.write('store_Program', data);
+    this.write(`${file}`, data);
   }
 }
 
@@ -49,7 +55,7 @@ const publish = {
   onLamp() {
     if (statebutton == 0) {
       device.publish('lamp', '1'); // Publica ao dispositivo a mensagem para liga a lâmpada
-      calculateTime.start(); 
+      calculateTime.start();
       statebutton = 1; // Indica que o botão foi pressionado, evitando que possa ser executada esse bloco de código novamente
     }
   },
@@ -129,7 +135,7 @@ app.post('/off', (req, res) => {
 
 //Deleta um programação no arquivo json (state_Program)
 app.post('/delete', (req, res) => {
-  operationJSON.delete(parseInt(req.body.positionDelete))
+  operationJSON.delete('state_Program',parseInt(req.body.positionDelete))
   copyJSONProgram() // Rescrever no arquivo os valores alterando-os para mostrar na tela
   return res.redirect('/');
 })
@@ -142,7 +148,8 @@ app.post('/delete', (req, res) => {
  * e verificar a cada segundo se é o dia da semana e o horário para executar a ação de ligar ou desligar a lâmpada.
  */
 let repeat;
- let saveStateBefore;
+let saveStateBefore;
+
 function runProgram() {
   let time = 1000;
   let date = convertUTC();
@@ -153,22 +160,23 @@ function runProgram() {
       let array = temp[i].hour.split(':'); //Retirar os ':' da hora e retorna um array com as palavra separadas em cada posição(exemplo: ['22','50'])
       if (date.getDay().toString() === temp[i].week) {
         if (date.getHours() == parseInt(array[0]) && date.getMinutes() == parseInt(array[1])) {
-          time = 60000  //Caso entre nesse escopo muda o tempo que a função irá executar na execução seguinte
+          time = 60000 //Caso entre nesse escopo muda o tempo que a função irá executar na execução seguinte
 
           temp[i].action === '1' ? publish.onLamp() : publish.offLamp()
-          
 
+          let readWait = operationJSON.read('wait');
           setTimeout(() => {
-            
             let stateNow = operationJSON.read('state') //Ler o arquivo depois que houve a alteração do estado da lâmpada
             if (temp[i].action === '1' && stateBefore.state === 'd' && stateNow.state === 'd') {
-              operationJSON.write('wait', temp[i])
+              readWait.push(temp[i])
+              operationJSON.write('wait', readWait)
               saveStateBefore = stateNow.state;
-             
+
             } else if (temp[i].action === '0' && stateBefore.state === 'l' && stateNow.state === 'l') {
-              operationJSON.write('wait', temp[i])
+              readWait.push(temp[i])
+              operationJSON.write('wait', readWait)
               saveStateBefore = stateNow.state; //Salvar o estado do arquivo na variável para poder ser verficada sua mudança
-              
+
             }
           }, 1000);
         } else time = 1000;
@@ -181,21 +189,35 @@ function runProgram() {
  * Esta função guardar a programação quando ocorre uma desconexão do  node MCU com a internet ela publicando até que 
  * o dado do arquivo 'state.json' mude, pois a programação não ocorreu. Quando o node mcu conectar à internet é publicado a ação que 
  * deveria ter acontecido. O objetivo principal é a instabilidade da internet.
- * */ 
+ * */
+let readJson
 function wait() {
-  
-  let readJson = fs.readFileSync('./data/wait.json', 'utf-8');
-  
-  let stateLamp = operationJSON.read('state');
+  readJson = operationJSON.read('wait')
 
-  if (saveStateBefore == undefined) {} else {
+  let stateLamp = operationJSON.read('state');
+  console.log(readJson)
+  console.log(stateLamp)
+
+  if (readJson[0] === undefined) {
+    console.log("vazio")
+  } else {
     if (stateLamp.state === saveStateBefore) {
       readJson[0].action === '1' ? publish.onLamp() : publish.offLamp();
+      console.log("dhdhdhd")
+    } else {
+      console.log("sao diferentes")
+      operationJSON.delete('wait', 0);
     }
   }
   setTimeout(wait, 5000);
 }
 
+
+
+function nulo(){
+
+
+}
 /*******************************************************************************************************************
  * Através desse metódo 'post' podemos obter os valores dos 'inputs' com o tempo para setar o temporizador
  */
@@ -215,12 +237,13 @@ app.post('/timer', (req, res) => {
 
 //Função que decrementa a váriavel do temporizador
 let counting
+
 function countTime() {
   timer -= 1
   counting = setTimeout(countTime, 1000);
   if (timer == 0) {
     comandLamp == 'l' ? publish.onLamp() : publish.offLamp()
-    clearTimeout(counting)  // clearTimeout faz uma limpeza na váriavel selecionada, assim parando a chamada recursiva do código
+    clearTimeout(counting) // clearTimeout faz uma limpeza na váriavel selecionada, assim parando a chamada recursiva do código
   }
 }
 /***************************************************************************************************************/
@@ -247,16 +270,16 @@ device
     //Verificar se o nodemcu está conectado ao MQTT da AWS Iot Core recebendo publicações que avisa que está conectado
     if (topic === 'alive') {
       console.log("SDDSDD")
-      count = 0;      // Zerar a váriavel count para que possa mater a informação de que o Node MCU está conectado.
+      count = 0; // Zerar a váriavel count para que possa mater a informação de que o Node MCU está conectado.
       stateNode = 'Online' //variável usada para mostrar o estado do node na web
     }
     if (topic === 'stateLamp') {
       let getStateLamp = payload.toString(); //Transforma a mesagem em um string.
       if (getStateLamp === 'l') {
         calculateTime.start(); //Função que salva o horário que a a lâmpada ligou.
-        statebutton = 1;  //Indica que o botão foi pressionado.
+        statebutton = 1; //Indica que o botão foi pressionado.
       } else {
-        statebutton = 0;  // Indica que foi pressionado o botão.
+        statebutton = 0; // Indica que foi pressionado o botão.
         calculateTime.end(); //Função que para a contagem do tempo para calcular o watts hora e custo  
       }
       const update = {
