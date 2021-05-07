@@ -5,10 +5,12 @@
     box-sizing: border-box;
 }
 
+
 body {
     height: 100vh;
     background-color: rgba(66, 65, 65, 0.87);
 }
+
 
 .panel {
     height: 100vh;
