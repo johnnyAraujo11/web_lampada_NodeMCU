@@ -1,4 +1,4 @@
-var awsIot = require('aws-iot-device-sdk');
+const awsIot = require('aws-iot-device-sdk');
 const express = require('express'); // Bilioteca para criar um servidor
 const app = express();
 const bodyParser = require('body-parser'); // Usado para obter os dados da hora e dia da semana no HTML
@@ -127,7 +127,7 @@ var device = awsIot.device({
   keyPath: './private/ef40a3e9cd-private.pem.key',
   certPath: './private/ef40a3e9cd-certificate.pem.crt',
   caPath: './private/AmazonRootCA1.pem',
-  clientId: 'testeAWS', // nome da coisa
+  clientId: 'testeAWS',
   host: 'a1elzn2qiibjs7-ats.iot.us-east-1.amazonaws.com'
 });
 
@@ -142,7 +142,7 @@ function runProgram() {
       let array = temp[i].hour.split(':'); //Retirar os ':' da hora e retora um array com as palavra separadas em cada posição
       if (date.getDay().toString() === temp[i].week) {
         if (date.getHours() == parseInt(array[0]) && date.getMinutes() == parseInt(array[1])) {
-          time = 60000
+          time = 60000;
           temp[i].action === '1' ? publish.onLamp() : publish.offLamp();
         } else time = 1000;
       }
@@ -156,17 +156,17 @@ function runProgram() {
  * Através desse metódo post podemos obter os valores dos inputs com o tempo para setar o temporizador
  * 
  */
-let timer = 0
-let comandLamp
+let timer = 0;
+let comandLamp;
 app.post('/timer', (req, res) => {
-  timer = (parseInt(req.body.timer) * 60 * 60) + (parseInt(req.body.timer[3] + req.body.timer[4]))
+  timer = (parseInt(req.body.timer) * 60 * 60) + (parseInt(req.body.timer[3] + req.body.timer[4]));
   if (timer > 0) {
-    comandLamp = req.body.timerSelect[0]
+    comandLamp = req.body.timerSelect[0];
     setTimeout(() => {
-      countTime() // Obtem a primeira letra da palavra l = ligar , d = desliga
+      countTime(); 
     }, 1000)
   }
-  return res.redirect('/')
+  return res.redirect('/');
 })
 
 //Função que decrementa a váriavel do temporizador
@@ -175,6 +175,7 @@ let counting
 function countTime() {
   timer -= 1
   counting = setTimeout(countTime, 1000);
+  console.log(timer)
   if (timer == 0) {
     comandLamp == 'l' ? publish.onLamp() : publish.offLamp()
     clearTimeout(counting)
@@ -237,7 +238,6 @@ setInterval(function () {
   if (count > 20) {
     count = 0;
     stateNode = 'Offline';
-    calculateTime.end();
   }
 }, 1000)
 setTimeout(() => {
@@ -258,7 +258,7 @@ function copyJSONProgram() {
 
 
 function convertUTC() {
-  return new Date(new Date().getTime() - 180 * 60 * 1000)
+  return  new Date(new Date().getTime() - 180 * 60 * 1000)
 }
 
 
