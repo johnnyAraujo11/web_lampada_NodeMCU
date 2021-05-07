@@ -171,7 +171,6 @@ app.post('/timer', (req, res) => {
 
 //Função que decrementa a váriavel do temporizador
 let counting
-
 function countTime() {
   timer -= 1
   counting = setTimeout(countTime, 1000);
@@ -180,19 +179,17 @@ function countTime() {
     comandLamp == 'l' ? publish.onLamp() : publish.offLamp()
     clearTimeout(counting)
   }
-
 }
 /************************************************************************************************************** */
 
 //Vetor com os tópicos inscritos
-vectorTopic = ['state', 'alive', 'stateLamp']
+vectorTopic = ['alive', 'stateLamp']
 //Conecta com o AWS IOT e se inscreve nos tópicos
 device
   .on('connect', function () {
     console.log('connect');
     device.subscribe(vectorTopic[0]);
     device.subscribe(vectorTopic[1]);
-    device.subscribe(vectorTopic[2]);
   })
 
 
@@ -204,7 +201,6 @@ let count = 0
 //Função que recebe a publicação sempre que houver uma publicação
 device
   .on('message', function (topic, payload) {
-
     //Verificar se o nodemcu está conectado ao aws recebendo publicações que avisa que está conectado
     if (topic === 'alive') {
       count = 0; // Zerar o contado para que possa mater a informação de que o Node MCU está conectado
